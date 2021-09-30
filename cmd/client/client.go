@@ -37,7 +37,7 @@ type NodeStatus struct {
 	SwapUsed    uint64  `msgpack:"swap_used"`
 	HddTotal    uint64  `msgpack:"hdd_total"`
 	HddUsed     uint64  `msgpack:"hdd_used"`
-	CPU         uint64  `msgpack:"cpu"`
+	CPU         float64 `msgpack:"cpu"`
 	NetworkTx   uint64  `msgpack:"network_tx"`
 	NetworkRx   uint64  `msgpack:"network_rx"`
 	NetworkIn   uint64  `msgpack:"network_in"`
