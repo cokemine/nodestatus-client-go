@@ -1,6 +1,6 @@
 # NodeStatus-client-go
 
-The client of NodeStatus written in Golang
+The client of NodeStatus written in Go
 
 ## 使用说明
 
@@ -10,8 +10,15 @@ The client of NodeStatus written in Golang
 
 假设你的服务端地址是`https://tz.mydomain.com`，客户端用户名`username`，密码`password`
 
-你可以这样运行
-
+你可以使用一键脚本
+```shell
+wget https://raw.githubusercontent.com/cokemine/nodestatus-client-go/master/install.sh
+bash install.sh
+#卸载
+wget https://raw.githubusercontent.com/cokemine/nodestatus-client-go/master/install.sh
+bash install.sh uninstall
+```
+或者手动安装
 ```shell
 mkdir -p /usr/local/NodeStatus/client/
 cd /tmp && wget "https://github.com/cokemine/nodestatus-client-go/releases/latest/download/status-client_linux_amd64.tar.gz"
