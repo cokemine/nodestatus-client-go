@@ -2,7 +2,7 @@
 #=================================================
 #  System Required: CentOS/Debian/ArchLinux with Systemd Support
 #  Description: NodeStatus Client-Go
-#  Version: v1.0.0
+#  Version: v1.0.1
 #  Author: Kagurazaka Mizuki
 #=================================================
 
@@ -48,7 +48,7 @@ function install_dependencies() {
     pacman -Syu --noconfirm wget curl
     ;;
   *)
-    exit1
+    exit 1
     ;;
   esac
 }
