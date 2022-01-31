@@ -89,6 +89,18 @@ func connect() {
 	}
 	item := &NodeStatus{}
 	traffic := status.NewNetwork()
+	go func() {
+		for {
+			_, _, err := socket.ReadMessage()
+			if err != nil {
+				err := socket.Close()
+				if err != nil {
+					return
+				}
+				return
+			}
+		}
+	}()
 	for {
 		CPU := status.Cpu(INTERVAL)
 		netRx, netTx := traffic.Speed()
