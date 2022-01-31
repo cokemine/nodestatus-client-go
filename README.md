@@ -33,7 +33,13 @@ systemctl status status-client
 ```
 
 对于 Arch Linux 用户，也可以从 AUR 获取 [nodestatus-client-go](https://aur.archlinux.org/packages/nodestatus-client-go) 来安装。
-
+这里假设你使用 `yay` 作为 AUR Helper
+```shell
+yay -S nodestatus-client-go
+cp /etc/nodestatus/client/config.conf.example  /etc/nodestatus/client/config.conf
+# edit your DSN in /etc/nodestatus/client/config.conf
+systemctl enable --now nodestatus-client
+```
 
 ## CLI Options
 
