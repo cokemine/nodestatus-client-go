@@ -32,6 +32,9 @@ systemctl start status-client
 systemctl status status-client
 ```
 
+对于 Arch Linux 用户，也可以从 AUR 获取 [nodestatus-client-go](https://aur.archlinux.org/packages/nodestatus-client-go) 来安装。
+
+
 ## CLI Options
 
 ```bash
