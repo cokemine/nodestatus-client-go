@@ -15,8 +15,9 @@ The client of NodeStatus written in Go
 wget https://raw.githubusercontent.com/cokemine/nodestatus-client-go/master/install.sh
 bash install.sh
 #卸载
-wget https://raw.githubusercontent.com/cokemine/nodestatus-client-go/master/install.sh
 bash install.sh uninstall
+# 更新
+bash install.sh update
 ```
 或者手动安装
 ```shell

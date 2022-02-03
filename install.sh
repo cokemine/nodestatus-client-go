@@ -11,6 +11,8 @@ Info="${Green_font_prefix}[信息]${Font_color_suffix}"
 Error="${Red_font_prefix}[错误]${Font_color_suffix}"
 Tip="${Green_font_prefix}[注意]${Font_color_suffix}"
 
+is_update=0
+
 function check_sys() {
   if [[ -f /etc/redhat-release ]]; then
     release="centos"
@@ -80,11 +82,11 @@ function install_client() {
     ;;
   esac
   mkdir -p /usr/local/NodeStatus/client/
-  cd /tmp && wget "https://github.com/cokemine/nodestatus-client-go/releases/latest/download/status-client_linux_${arch}.tar.gz"
+  cd /tmp && wget -N "https://github.com/cokemine/nodestatus-client-go/releases/latest/download/status-client_linux_${arch}.tar.gz"
   tar -zxvf "status-client_linux_${arch}.tar.gz" status-client
   mv status-client /usr/local/NodeStatus/client/
   chmod +x /usr/local/NodeStatus/client/status-client
-  echo -e "DSN=\"${dsn}\"" >/usr/local/NodeStatus/client/config.conf
+  [[ ${is_update} == 0 ]] && echo -e "DSN=\"${dsn}\"" >/usr/local/NodeStatus/client/config.conf
   wget https://raw.githubusercontent.com/cokemine/nodestatus-client-go/master/service/status-client.service -P /usr/lib/systemd/system/
   systemctl enable status-client
   systemctl start status-client
@@ -99,7 +101,11 @@ function install_client() {
 function uninstall_client() {
   systemctl stop status-client
   systemctl disable status-client
-  rm -rf /usr/local/NodeStatus/client/
+  if [[ ${is_update} == 0 ]]; then
+    rm -rf /usr/local/NodeStatus/client/
+  else
+    rm -rf /usr/local/NodeStatus/client/status-client
+  fi
   rm -rf /usr/lib/systemd/system/status-client.service
 }
 
@@ -107,6 +113,11 @@ check_sys
 case "$1" in
 uninstall)
   uninstall_client
+  ;;
+update)
+  is_update=1
+  uninstall_client
+  install_client
   ;;
 *)
   install_dependencies
