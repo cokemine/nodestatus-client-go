@@ -86,7 +86,7 @@ function install_client() {
   tar -zxvf "status-client_linux_${arch}.tar.gz" status-client
   mv status-client /usr/local/NodeStatus/client/
   chmod +x /usr/local/NodeStatus/client/status-client
-  [[ ${is_update} == 0 ]] && echo -e "DSN=\"${dsn}\"" >/usr/local/NodeStatus/client/config.conf
+  [[ -n ${dsn} ]] && echo -e "DSN=\"${dsn}\"" >/usr/local/NodeStatus/client/config.conf
   wget https://raw.githubusercontent.com/cokemine/nodestatus-client-go/master/service/status-client.service -P /usr/lib/systemd/system/
   systemctl enable status-client
   systemctl start status-client
@@ -110,18 +110,42 @@ function uninstall_client() {
 }
 
 check_sys
-case "$1" in
-uninstall)
-  uninstall_client
+action=0
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+  -d | --dsn)
+    dsn="$2"
+    shift
+    shift
+    ;;
+  uninstall)
+    action=2
+    shift
+    ;;
+  update)
+    action=1
+    shift
+    ;;
+  *)
+    action=0
+    shift
+    ;;
+  esac
+done
+
+case "${action}" in
+0)
+  [[ -z ${dsn} ]] && input_dsn
+  install_dependencies
+  install_client
   ;;
-update)
+1)
   is_update=1
   uninstall_client
   install_client
   ;;
-*)
-  install_dependencies
-  input_dsn
-  install_client
+2)
+  uninstall_client
   ;;
 esac
