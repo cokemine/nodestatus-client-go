@@ -87,20 +87,19 @@ func connect() {
 	} else {
 		return
 	}
-	item := &NodeStatus{}
-	traffic := status.NewNetwork()
-	go func() {
+
+	go func(socket *websocket.Conn) {
 		for {
-			_, _, err := socket.ReadMessage()
-			if err != nil {
-				err := socket.Close()
-				if err != nil {
-					return
-				}
-				return
+			if _, _, err := socket.NextReader(); err != nil {
+				_ = socket.Close()
+				break
 			}
 		}
-	}()
+	}(socket)
+
+	item := &NodeStatus{}
+	traffic := status.NewNetwork()
+
 	for {
 		CPU := status.Cpu(INTERVAL)
 		netRx, netTx := traffic.Speed()
