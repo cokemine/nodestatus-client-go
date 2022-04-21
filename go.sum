@@ -1,5 +1,5 @@
-github.com/cokemine/ServerStatus-goclient v1.1.11 h1:klOgHrZWNw3Qi4xTTz7rgfiK9+HZnmzkPSW3eqZx0ks=
-github.com/cokemine/ServerStatus-goclient v1.1.11/go.mod h1:86pkB8m1zuOZrx4E2EH86lfZSwdg+BDzqBke+0jwyTc=
+github.com/cokemine/ServerStatus-goclient v1.1.12 h1:MkL9GIK1Ozboyxxi31iB46yVy/S7z4sty+GOlQmcoqs=
+github.com/cokemine/ServerStatus-goclient v1.1.12/go.mod h1:86pkB8m1zuOZrx4E2EH86lfZSwdg+BDzqBke+0jwyTc=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
