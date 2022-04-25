@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #=================================================
 #  System Required: CentOS/Debian/ArchLinux with Systemd Support
 #  Description: NodeStatus Client-Go
@@ -26,8 +26,8 @@ function check_sys() {
     release="debian"
   elif grep -q -E -i "centos|red hat|redhat" /proc/version; then
     release="centos"
-  elif [[ $(cat /etc/issue 2>/dev/null | grep -i -E 'Alpine') != "" ]]; then
-    Alpine="True"
+  elif grep -q -E -i "alpine" /proc/version; then
+    release="alpine"
   else
     echo -e "NodeStatus Client 暂不支持该 Linux 发行版"
     exit 1
@@ -35,24 +35,10 @@ function check_sys() {
   bit=$(uname -m)
 }
 
-function check_pid() {
-  PID=$(pgrep -f "status-client")
-}
-
-
-
-depends=("curl" "wget" "nohup")
-depend=""
-for i in "${!depends[@]}"; do
-	now_depend="${depends[$i]}"
-	if [ ! -x "$(command -v $now_depend)" ]; then
-		depend="$now_depend $depend"
-	fi
-  done
-if [ "$depend" ]; then
 function install_dependencies() {
   case ${release} in
   centos)
+    yum update -y
     yum install -y $depend
     ;;
   debian)
@@ -70,7 +56,96 @@ function install_dependencies() {
     ;;
   esac
 }
+
+# 检测缺少依赖并补全
+check_sys
+if [[ $release = "alpine" ]]; then
+depends=("curl" "wget" "nohup" "openrc")
+else
+depends=("curl" "wget")
 fi
+depend=""
+for i in "${!depends[@]}"; do
+	now_depend="${depends[$i]}"
+	if [ ! -x "$(command -v $now_depend)" ]; then
+		depend="$now_depend $depend"
+	fi
+  done
+if [ "$depend" ]; then
+install_dependencies
+fi
+function check_arch() {
+  case ${bit} in
+  x86_64)
+    arch=amd64
+    ;;
+  i386)
+    arch=386
+    ;;
+  aarch64 | aarch64_be | arm64 | armv8b | armv8l)
+    arch=arm64
+    ;;
+  arm | armv6l | armv7l | armv5tel | armv5tejl)
+    arch=arm
+    ;;
+  mips | mips64)
+    arch=mips
+    ;;
+  *)
+    exit 1
+    ;;
+  esac
+}
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+  -d | --dsn)
+    dsn="$2"
+    shift
+    shift
+    ;;
+  uninstall)
+    action=2
+    shift
+    ;;
+  update)
+    action=1
+    shift
+    ;;
+  *)
+    action=0
+    shift
+    ;;
+  esac
+done
+
+# alpine
+  check_sys
+  if [[ $release == "alpine" ]];then 
+  check_arch
+  mkdir -p /usr/local/NodeStatus/client/
+  cd /usr/local/NodeStatus/client/ 
+  tar -zxvf <(wget -qO- "https://github.com/cokemine/nodestatus-client-go/releases/latest/download/status-client_linux_${arch}.tar.gz") status-client
+  chmod +x /usr/local/NodeStatus/client/status-client
+  echo "#!/sbin/openrc-run
+start() {
+nohup /usr/local/NodeStatus/client/status-client --dsn ${dsn} >/dev/null 2>&1 &
+}
+
+stop() {
+kill -9 ""$""(ps -A|grep status-client) >/dev/null 2>&1
+}" >/etc/init.d/status-client
+chmod +x /etc/init.d/status-client
+rc-update add status-client
+rc-service status-client start
+exit 1
+fi
+
+
+function check_pid() {
+  PID=$(pgrep -f "status-client")
+}
+
 
 function input_dsn() {
   echo -e "${Info} 请输入服务端的 DSN, 格式为 “ws(s)://username:password@yourdomain”"
@@ -125,37 +200,13 @@ function uninstall_client() {
   fi
   rm -rf /usr/lib/systemd/system/status-client.service
 }
-fi
 
 check_sys
 action=0
 
-while [[ $# -gt 0 ]]; do
-  case $1 in
-  -d | --dsn)
-    dsn="$2"
-    shift
-    shift
-    ;;
-  uninstall)
-    action=2
-    shift
-    ;;
-  update)
-    action=1
-    shift
-    ;;
-  *)
-    action=0
-    shift
-    ;;
-  esac
-done
-
 case "${action}" in
 0)
   [[ -z ${dsn} ]] && input_dsn
-  install_dependencies
   install_client
   ;;
 1)
@@ -167,8 +218,3 @@ case "${action}" in
   uninstall_client
   ;;
 esac
-
-# alpine
-if [[ $Alpine == True ]]; then
-  
-fi
