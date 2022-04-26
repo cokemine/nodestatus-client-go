@@ -12,7 +12,7 @@ Error="${Red_font_prefix}[错误]${Font_color_suffix}"
 Tip="${Green_font_prefix}[注意]${Font_color_suffix}"
 
 is_update=0
-
+# 检测系统发行版
 function check_sys() {
   if [[ -f /etc/redhat-release ]]; then
     release="centos"
@@ -34,7 +34,7 @@ function check_sys() {
   fi
   bit=$(uname -m)
 }
-
+# 安装依赖
 function install_dependencies() {
   case ${release} in
   centos)
@@ -57,23 +57,25 @@ function install_dependencies() {
   esac
 }
 
-# 检测缺少依赖并补全
+# 检测缺少依赖
 check_sys
-if [[ $release = "alpine" ]]; then
-depends=("curl" "wget" "nohup" "openrc")
+if [[ $release == "alpine" ]]; then
+  depends=("curl" "wget" "nohup" "openrc")
 else
-depends=("curl" "wget")
+  depends=("curl" "wget")
 fi
 depend=""
 for i in "${!depends[@]}"; do
-	now_depend="${depends[$i]}"
-	if [ ! -x "$(command -v $now_depend)" ]; then
-		depend="$now_depend $depend"
-	fi
-  done
+  now_depend="${depends[$i]}"
+  if [ ! -x "$(command -v $now_depend)" ]; then
+    depend="$now_depend $depend"
+  fi
+done
+# 有缺少依赖才会执行安装，没有则不会
 if [ "$depend" ]; then
-install_dependencies
+  install_dependencies
 fi
+# 检测系统架构
 function check_arch() {
   case ${bit} in
   x86_64)
@@ -96,7 +98,7 @@ function check_arch() {
     ;;
   esac
 }
-
+# 检查传入的dsn参数
 while [[ $# -gt 0 ]]; do
   case $1 in
   -d | --dsn)
@@ -119,12 +121,15 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# alpine
-  check_sys
-  if [[ $release == "alpine" ]];then 
-  check_arch
+function check_pid() {
+  PID=$(pgrep -f "status-client")
+}
+
+# alpine操作，其他发行版会跳过这里
+check_sys
+if [[ $release == "alpine" ]]; then
   mkdir -p /usr/local/NodeStatus/client/
-  cd /usr/local/NodeStatus/client/ 
+  cd /usr/local/NodeStatus/client/
   tar -zxvf <(wget -qO- "https://github.com/cokemine/nodestatus-client-go/releases/latest/download/status-client_linux_${arch}.tar.gz") status-client
   chmod +x /usr/local/NodeStatus/client/status-client
   echo "#!/sbin/openrc-run
@@ -135,17 +140,20 @@ nohup /usr/local/NodeStatus/client/status-client --dsn ${dsn} >/dev/null 2>&1 &
 stop() {
 kill -9 ""$""(ps -A|grep status-client) >/dev/null 2>&1
 }" >/etc/init.d/status-client
-chmod +x /etc/init.d/status-client
-rc-update add status-client
-rc-service status-client start
-exit 1
+  chmod +x /etc/init.d/status-client
+  rc-update add status-client
+  rc-service status-client start
+  check_pid
+  if [[ -n ${PID} ]]; then
+    echo -e "${Info} NodeStatus Client 启动成功！"
+  else
+    echo -e "${Error} NodeStatus Client 启动失败！"
+  fi
+  exit 1
 fi
-
-
-function check_pid() {
-  PID=$(pgrep -f "status-client")
-}
-
+# alpine操作到此完成
+# 以下是别的Linux发行版操作，没有修改
+# 这个pr仅仅增加alpine支持和优化依赖安装步骤
 
 function input_dsn() {
   echo -e "${Info} 请输入服务端的 DSN, 格式为 “ws(s)://username:password@yourdomain”"
