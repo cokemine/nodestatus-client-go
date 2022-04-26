@@ -153,7 +153,7 @@ kill -9 ""$""(ps -A|grep status-client) >/dev/null 2>&1
 fi
 # alpine操作到此完成
 # 以下是别的Linux发行版操作，没有修改
-# 这个pr仅仅增加alpine支持和优化依赖安装步骤
+# 这个pr仅仅增加alpine支持和优化依赖安装步骤.
 
 function input_dsn() {
   echo -e "${Info} 请输入服务端的 DSN, 格式为 “ws(s)://username:password@yourdomain”"
