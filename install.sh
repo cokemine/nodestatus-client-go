@@ -17,11 +17,9 @@ is_update=0
 if [[ $(curl -m 10 -s ip.ping0.cc/geo | grep '中国') != "" ]]; then
 	url="https://ghproxy.com/https://github.com"
   url2="https://ghproxy.com/https://raw.githubusercontent.com"
-  echo "cn"
 else
 	url="https://github.com"
   url2="https://raw.githubusercontent.com"
-  echo "海外"
 fi
 
 
