@@ -12,6 +12,19 @@ Error="${Red_font_prefix}[错误]${Font_color_suffix}"
 Tip="${Green_font_prefix}[注意]${Font_color_suffix}"
 
 is_update=0
+
+# 判断vps地区，大陆服务器使用代理加速下载
+if [[ $(curl -m 10 -s ip.ping0.cc/geo | grep '中国') != "" ]]; then
+	url="https://ghproxy.com/https://github.com"
+  url2="https://ghproxy.com/https://raw.githubusercontent.com"
+  echo "cn"
+else
+	url="https://github.com"
+  url2="https://raw.githubusercontent.com"
+  echo "海外"
+fi
+
+
 # 检测系统发行版
 function check_sys() {
   if [[ -f /etc/redhat-release ]]; then
@@ -130,7 +143,7 @@ check_sys
 if [[ $release == "alpine" ]]; then
   mkdir -p /usr/local/NodeStatus/client/
   cd /usr/local/NodeStatus/client/
-  tar -zxvf <(wget -qO- "https://github.com/cokemine/nodestatus-client-go/releases/latest/download/status-client_linux_${arch}.tar.gz") status-client
+  tar -zxvf <(wget -qO- "${url}/cokemine/nodestatus-client-go/releases/latest/download/status-client_linux_${arch}.tar.gz") status-client
   chmod +x /usr/local/NodeStatus/client/status-client
   echo "#!/sbin/openrc-run
 start() {
@@ -182,12 +195,12 @@ function install_client() {
     ;;
   esac
   mkdir -p /usr/local/NodeStatus/client/
-  cd /tmp && wget -N "https://github.com/cokemine/nodestatus-client-go/releases/latest/download/status-client_linux_${arch}.tar.gz"
+  cd /tmp && wget -N "${url}/cokemine/nodestatus-client-go/releases/latest/download/status-client_linux_${arch}.tar.gz"
   tar -zxvf "status-client_linux_${arch}.tar.gz" status-client
   mv status-client /usr/local/NodeStatus/client/
   chmod +x /usr/local/NodeStatus/client/status-client
   [[ -n ${dsn} ]] && echo -e "DSN=\"${dsn}\"" >/usr/local/NodeStatus/client/config.conf
-  wget https://raw.githubusercontent.com/cokemine/nodestatus-client-go/master/service/status-client.service -P /usr/lib/systemd/system/
+  wget "${url2}/cokemine/nodestatus-client-go/master/service/status-client.service" -O /usr/lib/systemd/system/status-client.service
   systemctl enable status-client
   systemctl start status-client
   check_pid
