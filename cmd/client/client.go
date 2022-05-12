@@ -97,23 +97,22 @@ func connect() {
 		}
 	}(socket)
 
-	item := &NodeStatus{}
-	traffic := status.NewNetwork()
+	item := NodeStatus{}
 
 	for {
-		CPU := status.Cpu(INTERVAL)
-		netRx, netTx := traffic.Speed()
-		var netIn, netOut uint64
+		CPU := status.Cpu(*INTERVAL)
+		var netIn, netOut, netRx, netTx uint64
 		if !*isVnstat {
-			netIn, netOut = traffic.Traffic()
+			netIn, netOut, netRx, netTx = status.Traffic(*INTERVAL)
 		} else {
+			_, _, netRx, netTx = status.Traffic(*INTERVAL)
 			netIn, netOut, err = status.TrafficVnstat()
 			if err != nil {
 				log.Println("Please check if vnStat is installed")
 			}
 		}
 		memoryTotal, memoryUsed, swapTotal, swapUsed := status.Memory()
-		hddTotal, hddUsed := status.Disk(INTERVAL)
+		hddTotal, hddUsed := status.Disk(*INTERVAL)
 		uptime := status.Uptime()
 		load := status.Load()
 		item.CPU = CPU
@@ -139,7 +138,7 @@ func connect() {
 			}
 			timer = 150.0
 		}
-		timer -= 1 * *INTERVAL
+		timer -= *INTERVAL
 		data, _ := msgpack.Marshal(item)
 		err = socket.WriteMessage(websocket.BinaryMessage, data)
 		if err != nil {
