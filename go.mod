@@ -1,6 +1,6 @@
 module github.com/cokemine/nodestatus-client-go
 
-go 1.16
+go 1.19
 
 require (
 	github.com/cokemine/ServerStatus-goclient v1.1.13
