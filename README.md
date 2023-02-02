@@ -8,7 +8,7 @@ The client of NodeStatus written in Go
 
 运行时需传入客户端对应参数。
 
-假设你的服务端地址是 `https:/status.mydomain.com`，客户端用户名 `username`，密码 `password`
+假设你的服务端地址是 `https://status.mydomain.com`，客户端用户名 `username`，密码 `password`
 
 你也可以使用一键脚本进行安装
 ```shell
@@ -55,7 +55,7 @@ USAGE:
    NodeStatus-Client [global options] command [command options] [arguments...]
 
 VERSION:
-   v1.0.9-next
+   v1.0.x
 
 COMMANDS:
    help, h  Shows a list of commands or help for one command
