@@ -1,10 +1,10 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"github.com/cokemine/ServerStatus-goclient/pkg/status"
 	"github.com/gorilla/websocket"
+	"github.com/urfave/cli/v2"
 	"github.com/vmihailenco/msgpack/v5"
 	"log"
 	"net/url"
@@ -14,13 +14,15 @@ import (
 )
 
 var (
-	SERVER   = flag.String("h", "", "Input the host of the server")
-	USER     = flag.String("u", "", "Input the client's username")
-	PASSWORD = flag.String("p", "", "Input the client's password")
-	INTERVAL = flag.Float64("interval", 1.5, "Input the INTERVAL")
-	DSN      = flag.String("dsn", "", "Input DSN, format: ws(s)://username:password@host")
-	isVnstat = flag.Bool("vnstat", false, "Use vnstat for traffic statistics, linux only")
+	SERVER   string
+	USER     string
+	PASSWORD string
+	DSN      string
+	INTERVAL float64
+	VNSTAT   bool
 	auth     []byte
+
+	version string
 )
 
 type Identify struct {
@@ -47,7 +49,7 @@ type NodeStatus struct {
 }
 
 func connect() {
-	socket, _, err := websocket.DefaultDialer.Dial(*SERVER+"/connect", nil)
+	socket, _, err := websocket.DefaultDialer.Dial(SERVER+"/connect", nil)
 	if err != nil {
 		log.Println("Caught Exception:", err.Error())
 		time.Sleep(5 * time.Second)
@@ -100,19 +102,19 @@ func connect() {
 	item := NodeStatus{}
 
 	for {
-		CPU := status.Cpu(*INTERVAL)
+		CPU := status.Cpu(INTERVAL)
 		var netIn, netOut, netRx, netTx uint64
-		if !*isVnstat {
-			netIn, netOut, netRx, netTx = status.Traffic(*INTERVAL)
+		if !VNSTAT {
+			netIn, netOut, netRx, netTx = status.Traffic(INTERVAL)
 		} else {
-			_, _, netRx, netTx = status.Traffic(*INTERVAL)
+			_, _, netRx, netTx = status.Traffic(INTERVAL)
 			netIn, netOut, err = status.TrafficVnstat()
 			if err != nil {
 				log.Println("Please check if vnStat is installed")
 			}
 		}
 		memoryTotal, memoryUsed, swapTotal, swapUsed := status.Memory()
-		hddTotal, hddUsed := status.Disk(*INTERVAL)
+		hddTotal, hddUsed := status.Disk(INTERVAL)
 		uptime := status.Uptime()
 		load := status.Load()
 		item.CPU = CPU
@@ -138,7 +140,7 @@ func connect() {
 			}
 			timer = 150.0
 		}
-		timer -= *INTERVAL
+		timer -= INTERVAL
 		data, _ := msgpack.Marshal(item)
 		err = socket.WriteMessage(websocket.BinaryMessage, data)
 		if err != nil {
@@ -148,36 +150,85 @@ func connect() {
 	}
 }
 
-func parseUrl(host *string) {
-	u, err := url.Parse(*host)
+func parseUrl(host string) {
+	u, err := url.Parse(host)
 	if err != nil {
 		log.Println("Please check the host or dsn you input")
 		os.Exit(1)
 	}
-	*SERVER = fmt.Sprintf("%s://%s", strings.Replace(u.Scheme, "http", "ws", 1), u.Host)
+	SERVER = fmt.Sprintf("%s://%s", strings.Replace(u.Scheme, "http", "ws", 1), u.Host)
 	if u.User.Username() != "" {
-		*USER = u.User.Username()
+		USER = u.User.Username()
 	}
 	password, ok := u.User.Password()
 	if password != "" && ok {
-		*PASSWORD = password
+		PASSWORD = password
 	}
 }
 
 func main() {
-	flag.Parse()
-	if *SERVER != "" {
-		parseUrl(SERVER)
+	app := &cli.App{
+		Name:    "NodeStatus-Client",
+		Usage:   "The client of NodeStatus",
+		Version: version,
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:        "server",
+				Aliases:     []string{"s"},
+				Usage:       "server address",
+				Destination: &SERVER,
+			},
+			&cli.StringFlag{
+				Name:        "username",
+				Aliases:     []string{"u"},
+				Usage:       "client username",
+				Destination: &USER,
+			},
+			&cli.StringFlag{
+				Name:        "password",
+				Aliases:     []string{"p"},
+				Usage:       "client password",
+				Destination: &PASSWORD,
+			},
+			&cli.StringFlag{
+				Name:        "dsn",
+				Aliases:     []string{"d"},
+				Usage:       "DSN, format: ws(s)://username:password@yourdomain.com",
+				Destination: &DSN,
+			},
+			&cli.Float64Flag{
+				Name:        "interval",
+				Aliases:     []string{"i"},
+				Usage:       "interval of data collection",
+				Value:       1.5,
+				Destination: &INTERVAL,
+			},
+			&cli.BoolFlag{
+				Name:        "vnstat",
+				Usage:       "use vnstat to collect traffic, Linux Only",
+				Value:       false,
+				Destination: &VNSTAT,
+			},
+		},
+		Action: func(*cli.Context) error {
+			if SERVER != "" {
+				parseUrl(SERVER)
+			}
+			if DSN != "" {
+				parseUrl(DSN)
+			}
+			if SERVER == "" || USER == "" || PASSWORD == "" {
+				log.Println("SERVER, USERNAME, PASSWORD can not be blank!")
+				os.Exit(1)
+			}
+			auth, _ = msgpack.Marshal(&Identify{Username: USER, Password: PASSWORD})
+			for {
+				connect()
+			}
+		},
 	}
-	if *DSN != "" {
-		parseUrl(DSN)
-	}
-	if *SERVER == "" || *USER == "" || *PASSWORD == "" {
-		log.Println("HOST, USERNAME, PASSWORD can not be blank!")
-		os.Exit(1)
-	}
-	auth, _ = msgpack.Marshal(&Identify{Username: *USER, Password: *PASSWORD})
-	for {
-		connect()
+
+	if err := app.Run(os.Args); err != nil {
+		log.Fatal(err)
 	}
 }

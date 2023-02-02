@@ -48,17 +48,26 @@ systemctl enable --now nodestatus-client
 ## CLI Options
 
 ```bash
-  -dsn string
-        Input DSN, format: ws(s)://username:password@host
-  -h string
-        Input the host of the server
-  -interval float
-        Input the INTERVAL (default 1.5)
-  -p string
-        Input the client's password
-  -u string
-        Input the client's username
-  -vnstat
-        Use vnstat for traffic statistics, linux only
+NAME:
+   NodeStatus-Client - The client of NodeStatus
+
+USAGE:
+   NodeStatus-Client [global options] command [command options] [arguments...]
+
+VERSION:
+   v1.0.9-next
+
+COMMANDS:
+   help, h  Shows a list of commands or help for one command
+
+GLOBAL OPTIONS:
+   --server value, -s value    server address
+   --username value, -u value  client username
+   --password value, -p value  client password
+   --dsn value, -d value       DSN, format: ws(s)://username:password@yourdomain.com
+   --interval value, -i value  interval of data collection (default: 1.5)
+   --vnstat                    use vnstat to collect traffic, Linux Only (default: false)
+   --help, -h                  show help
+   --version, -v               print the version
 ```
 
