@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/cokemine/ServerStatus-goclient/pkg/status"
+	"github.com/cokemine/nodestatus-client-go/internal/selfupdate"
 	"github.com/gorilla/websocket"
 	"github.com/urfave/cli/v2"
 	"github.com/vmihailenco/msgpack/v5"
@@ -20,6 +21,7 @@ var (
 	DSN      string
 	INTERVAL float64
 	VNSTAT   bool
+	UPDATE   bool
 	auth     []byte
 
 	version string
@@ -209,6 +211,12 @@ func main() {
 				Value:       false,
 				Destination: &VNSTAT,
 			},
+			&cli.BoolFlag{
+				Name:        "auto-update",
+				Usage:       "auto update client",
+				Value:       true,
+				Destination: &UPDATE,
+			},
 		},
 		Action: func(*cli.Context) error {
 			if SERVER != "" {
@@ -222,6 +230,19 @@ func main() {
 				os.Exit(1)
 			}
 			auth, _ = msgpack.Marshal(&Identify{Username: USER, Password: PASSWORD})
+
+			if UPDATE {
+				ticker := time.NewTicker(10 * time.Second)
+				defer ticker.Stop()
+				go func() {
+					for range ticker.C {
+						if err := selfupdate.DoUpdate(version); err != nil {
+							log.Println("Update failed:", err)
+						}
+					}
+				}()
+			}
+
 			for {
 				connect()
 			}
