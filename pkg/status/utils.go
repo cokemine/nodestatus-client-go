@@ -9,10 +9,10 @@ var invalidInterface = []string{"lo", "tun", "kube", "docker", "vmbr", "br-", "v
 var validFs = []string{"ext4", "ext3", "ext2", "reiserfs", "jfs", "btrfs", "fuseblk", "zfs", "simfs", "ntfs", "fat32", "exfat", "xfs", "apfs"}
 
 func BytesToString(b []byte) string {
-	return *(*string)(unsafe.Pointer(&b))
-}
-func StringToBytes(s string) []byte {
-	return *(*[]byte)(unsafe.Pointer(&s))
+	if len(b) == 0 {
+		return ""
+	}
+	return unsafe.String(unsafe.SliceData(b), len(b))
 }
 
 func checkInterface(name string) bool {
