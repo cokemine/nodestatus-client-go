@@ -2,7 +2,7 @@
 
 package status
 
-import "github.com/shirou/gopsutil/v3/mem"
+import "github.com/shirou/gopsutil/v4/mem"
 
 func Memory() (uint64, uint64, uint64, uint64) {
 	memory, _ := mem.VirtualMemory()
