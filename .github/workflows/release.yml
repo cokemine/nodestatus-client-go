@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -27,6 +27,6 @@ jobs:
               -v $(pwd):/go/src/${PACKAGE_NAME} \
               -v $(pwd)/sysroot:/sysroot \
               -w /go/src/${PACKAGE_NAME} \
-              goreleaser/goreleaser-cross \
+              goreleaser/goreleaser-cross:v1.26.3 \
               -f .goreleaser_action.yml \
-              release --rm-dist
+              release --clean

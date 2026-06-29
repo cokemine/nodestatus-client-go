@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/cokemine/ServerStatus-goclient/pkg/status"
+	"github.com/cokemine/nodestatus-client-go/pkg/status"
 	"github.com/gorilla/websocket"
 	"github.com/urfave/cli/v2"
 	"github.com/vmihailenco/msgpack/v5"
